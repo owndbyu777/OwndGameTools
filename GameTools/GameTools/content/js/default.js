@@ -1,1 +1,1 @@
-﻿
+﻿function openXMLCompiler() { window.location = '../XMLCompiler/XMLCompiler.aspx'; }
