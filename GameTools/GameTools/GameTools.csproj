@@ -94,6 +94,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="content\js\jquery-3.1.1.js" />
     <Content Include="content\js\XMLCompiler.js" />
     <Content Include="packages.config" />
     <Content Include="ApplicationInsights.config">
