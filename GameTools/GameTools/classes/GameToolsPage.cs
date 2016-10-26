@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
 
 namespace GameTools.classes
 {
-    public class GameToolsPage : System.Web.UI.Page
+    public class GameToolsPage : Page
     {
-        protected void Page_Load(object sender, EventArgs e)
+        virtual protected void Page_Load(object sender, EventArgs e)
         {
-            System.Web.UI.HtmlControls.HtmlControl jsJquery;// = System.Web.UI.HtmlControls.HtmlControl("script");
+            HtmlGenericControl jsJquery = new HtmlGenericControl("script");
             jsJquery.Attributes.Add("type", "text/javascript");
             jsJquery.Attributes.Add("language", "javascript");
             jsJquery.Attributes.Add("src", "../content/js/jquery-3.1.1.js");
 
-            Header.Controls.AddAt(0, jsJquery)
+            Page.Header.Controls.AddAt(0, jsJquery);
         }
     }
 }

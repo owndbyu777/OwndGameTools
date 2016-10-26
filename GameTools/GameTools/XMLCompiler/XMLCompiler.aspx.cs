@@ -7,11 +7,11 @@ using System.Web.UI.WebControls;
 
 namespace GameTools.XMLCompiler
 {
-    public partial class XMLCompiler : System.Web.UI.Page
-    {
-        protected void Page_Load(object sender, EventArgs e)
-        {
+    public partial class XMLCompiler : classes.GameToolsPage {
 
+        protected override void Page_Load(object sender, EventArgs e) {
+            base.Page_Load(sender, e);
         }
+
     }
 }
