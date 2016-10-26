@@ -13,7 +13,13 @@ namespace GameTools.classes
             jsJquery.Attributes.Add("language", "javascript");
             jsJquery.Attributes.Add("src", "../content/js/jquery-3.1.1.js");
 
+            HtmlGenericControl jsGlobals = new HtmlGenericControl("script");
+            jsGlobals.Attributes.Add("type", "text/javascript");
+            jsGlobals.Attributes.Add("language", "javascript");
+            jsGlobals.Attributes.Add("src", "../content/js/globals.js");
+
             Page.Header.Controls.AddAt(0, jsJquery);
+            Page.Header.Controls.AddAt(0, jsGlobals);
         }
     }
 }

@@ -1,2 +1,18 @@
 ﻿body {
 }
+
+#divMenu {
+    display: block;
+    height: 50px;
+    width: 100%;
+    background-color: #82eded;
+    border-bottom: 1px solid black;
+}
+
+tr.headerRow td {
+    background-color: yellow;
+}
+
+tr.headerRow.underline td {
+    border-bottom: 1px solid black;
+}

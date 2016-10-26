@@ -10,9 +10,14 @@
 </head>
 <body>
     <form id="form1" runat="server">
-    <div>
-    <button type="button" onclick="openDefault()">HOME</button>
-    </div>
+        <div id="divMenu">
+            <button type="button" onclick="openDefault()">HOME</button>
+        </div>
+        <div id="divContent">
+            <div id="divContainer">
+
+            </div>
+        </div>
     </form>
 </body>
 </html>
