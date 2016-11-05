@@ -16,3 +16,13 @@ tr.headerRow td {
 tr.headerRow.underline td {
     border-bottom: 1px solid black;
 }
+
+td.selected {
+    background-color: rgba(76, 255, 0, 0.4) !important;
+}
+
+.ui-selectable {
+    cursor: pointer;
+}
+.ui-selecting { background: #FECA40; }
+.ui-selected { background: #F39814; color: white; }
