@@ -13,5 +13,11 @@ namespace GameTools.XMLCompiler
             base.Page_Load(sender, e);
         }
 
+        [AjaxPro.AjaxMethod()]
+        public void saveXML()
+        {
+
+        }
+
     }
 }
