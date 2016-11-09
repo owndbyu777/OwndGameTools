@@ -11,12 +11,13 @@ namespace GameTools.XMLCompiler
 
         protected override void Page_Load(object sender, EventArgs e) {
             base.Page_Load(sender, e);
+            AjaxPro.Utility.RegisterTypeForAjax(GetType());
         }
 
-        [AjaxPro.AjaxMethod()]
-        public void saveXML()
+        [AjaxPro.AjaxMethod(AjaxPro.HttpSessionStateRequirement.ReadWrite)]
+        public string saveXML()
         {
-
+            return "YES";
         }
 
     }

@@ -41,6 +41,10 @@ function buildXMLCompilerPage() {
     }
 
     setupSelectable();
+
+    GameTools.XmlCompiler.saveXML(function (rsp) {
+        window.alert(rsp);
+    }, null, null, function () { /*error*/ }, function () {/*error*/ });
 }
 
 function setupSelectable() {
