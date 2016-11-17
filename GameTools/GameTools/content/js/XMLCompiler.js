@@ -34,6 +34,46 @@ function buildXMLCompilerPage() {
         }
         btnRemoveCol.appendTo(divContainer);
 
+        var btnLoad = D('button', '', '', 'Remove Col', { 'type': 'button' });
+        btnLoad.onclick = function () {
+            GameTools.XMLCompiler.XMLCompiler.loadXML(JSON.stringify({ success: true }), function (rsp) {
+                if (!rsp.error) {
+                    var objRsp = JSON.parse(rsp.value);
+                    if (objRsp.success) {
+                        //success
+                        window.alert("success");
+                    } else {
+                        //error
+                        window.alert(objRsp.error);
+                    }
+                } else {
+                    //error
+                    window.alert("error");
+                }
+            }, null, null, function () { window.alert("error"); }, function () { window.alert("error"); });
+        }
+        btnLoad.appendTo(divContainer);
+
+        var btnSave = D('button', '', '', 'Save', { 'type': 'button' });
+        btnSave.onclick = function () {
+            GameTools.XMLCompiler.XMLCompiler.saveXML(JSON.stringify({success: true}), function (rsp) {
+                if (!rsp.error) {
+                    var objRsp = JSON.parse(rsp.value);
+                    if (objRsp.success) {
+                        //success
+                        window.alert("success");
+                    } else {
+                        //error
+                        window.alert("fail");
+                    }
+                } else {
+                    //error
+                    window.alert("error");
+                }
+            }, null, null, function () { window.alert("error"); }, function () { window.alert("error"); });
+        }
+        btnSave.appendTo(divContainer);
+
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
         tblXML.addRow(-1, { isHeader: true });
@@ -41,10 +81,6 @@ function buildXMLCompilerPage() {
     }
 
     setupSelectable();
-
-    GameTools.XmlCompiler.saveXML(function (rsp) {
-        window.alert(rsp);
-    }, null, null, function () { /*error*/ }, function () {/*error*/ });
 }
 
 function setupSelectable() {
@@ -64,7 +100,8 @@ function setupSelectable() {
                 if ($selectedCols.length > 0) {
                     arrRowIdx.push(index);
                     $selectedCols.each(function (index, element) {
-                        arrColIdx.push($selectableCols.index(this));
+                        var colIdx = $selectableCols.index(this);
+                        if (arrColIdx.indexOf(colIdx) == -1) arrColIdx.push(colIdx);
                     })
                 }
             });
