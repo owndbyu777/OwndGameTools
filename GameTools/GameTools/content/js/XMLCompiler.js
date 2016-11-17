@@ -36,7 +36,7 @@ function buildXMLCompilerPage() {
 
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
-        tblXML.addRow(-1, { isHeader: true });
+        tblXML.addRow(-1, { isHeader: true, isProto: true });
         tblXML.addCol(-1, {});
     }
 
@@ -49,7 +49,7 @@ function buildXMLCompilerPage() {
 
 function setupSelectable() {
     $('table.xml').selectable({
-        filter: 'td.xml',
+        filter: 'td.xml:not(.proto)',
         stop: function (event, ui) {
             //Get selected cols
             var $selectableRows = $('tr.xml', this);
@@ -186,7 +186,7 @@ function setupSelectable() {
             }
         }
 
-        //SAVE FUNCTIONS
+        //SAVE/LOAD/EDIT FUNCTIONS
         {
             t.buildSaveObj = function () {
                 var protoColData = new Array();
@@ -196,7 +196,7 @@ function setupSelectable() {
 
                 var rowData = new Array();
                 for (var i = 0; i < t.rows.length; i++) {
-                    rowData.push(t.rows[i].getRowData());
+                    if (t.rows[i].canSave()) rowData.push(t.rows[i].getRowData());
                 }
 
                 return { protoCols: protoColData, rows: rowData };
@@ -211,6 +211,7 @@ function setupSelectable() {
         var t = this;
 
         t.isHeader = false;
+        t.isProto = false;
         t.cols = new Array();
 
         $.extend(t, obj);
@@ -268,6 +269,10 @@ function setupSelectable() {
         
         //SAVE FUNCTIONS
         {
+            t.canSave = function () {
+                return !t.isProto;
+            }
+
             t.getRowData = function () {
                 var colData = new Array();
                 for (var i = 0; i < t.cols.length; i++) {
@@ -294,8 +299,8 @@ function setupSelectable() {
 
         t.getControl = function () {
             if (!t.control) {
-                t.control = D('td', 'xml');
-                t.divSelect = D('div', 'sel').appendTo(t.control).html(t.value);
+                t.control = D('td', 'xml' + (t.isProto ? ' proto' : ''));
+                t.divSelect = D('div', 'sel').appendTo(t.control).html(t.name + '_' + t.value);
             }
 
             return t.control;
