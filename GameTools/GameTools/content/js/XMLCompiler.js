@@ -37,7 +37,7 @@ function buildXMLCompilerPage() {
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
         tblXML.addRow(-1, { isHeader: true, isProto: true });
-        tblXML.addCol(-1, {});
+        tblXML.addCol(-1, { isProto: true });
     }
 
     setupSelectable();
@@ -296,6 +296,8 @@ function setupSelectable() {
         t.value = 'select me';
 
         $.extend(t, obj);
+
+        if (t.isProto) t.value = 'proto col'
 
         t.getControl = function () {
             if (!t.control) {
