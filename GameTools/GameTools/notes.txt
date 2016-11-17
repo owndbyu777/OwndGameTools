@@ -1,3 +1,10 @@
 ﻿ajaxpro quick guyde
 
 http://www.ajaxpro.info/quickguide.aspx
+
+
+Thoughts on protocols
+- have a row above the table which is the protocol row
+  - always has a textbox to edit the name of the col
+  - has a edit button on each row which allows you to edit
+  - the finer details of the row eg: what data is allowed to be entered into the cols

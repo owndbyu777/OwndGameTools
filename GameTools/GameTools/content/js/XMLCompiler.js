@@ -76,8 +76,8 @@ function buildXMLCompilerPage() {
 
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
-        tblXML.addRow(-1, { isHeader: true });
-        tblXML.addCol(-1, {});
+        tblXML.addRow(-1, { isHeader: true, isProto: true });
+        tblXML.addCol(-1, { isProto: true });
     }
 
     setupSelectable();
@@ -85,7 +85,7 @@ function buildXMLCompilerPage() {
 
 function setupSelectable() {
     $('table.xml').selectable({
-        filter: 'td.xml',
+        filter: 'td.xml:not(.proto)',
         stop: function (event, ui) {
             //Get selected cols
             var $selectableRows = $('tr.xml', this);
@@ -222,6 +222,23 @@ function setupSelectable() {
                 t.control.append(dom);
             }
         }
+
+        //SAVE/LOAD/EDIT FUNCTIONS
+        {
+            t.buildSaveObj = function () {
+                var protoColData = new Array();
+                for (var i = 0; i < t.protoCols.length; i++) {
+                    protoColData.push(t.protoCols[i].getProtoColData());
+                }
+
+                var rowData = new Array();
+                for (var i = 0; i < t.rows.length; i++) {
+                    if (t.rows[i].canSave()) rowData.push(t.rows[i].getRowData());
+                }
+
+                return { protoCols: protoColData, rows: rowData };
+            }
+        }
     }
 }
 
@@ -231,6 +248,7 @@ function setupSelectable() {
         var t = this;
 
         t.isHeader = false;
+        t.isProto = false;
         t.cols = new Array();
 
         $.extend(t, obj);
@@ -285,7 +303,21 @@ function setupSelectable() {
                 $(dom).insertAfter(t.getControlCols().eq(index));
             }
         }
+        
+        //SAVE FUNCTIONS
+        {
+            t.canSave = function () {
+                return !t.isProto;
+            }
 
+            t.getRowData = function () {
+                var colData = new Array();
+                for (var i = 0; i < t.cols.length; i++) {
+                    colData.push(t.cols[i].getColData());
+                }
+                return { cols: colData };
+            }
+        }
     }
 }
 
@@ -297,12 +329,17 @@ function setupSelectable() {
         t.isHeader = false;
         t.isProto = false;
 
+        t.name = 'selectable';
+        t.value = 'select me';
+
         $.extend(t, obj);
+
+        if (t.isProto) t.value = 'proto col'
 
         t.getControl = function () {
             if (!t.control) {
-                t.control = D('td', 'xml');
-                t.divSelect = D('div', 'sel').appendTo(t.control).html('select me');
+                t.control = D('td', 'xml' + (t.isProto ? ' proto' : ''));
+                t.divSelect = D('div', 'sel').appendTo(t.control).html(t.name + '_' + t.value);
             }
 
             return t.control;
@@ -316,6 +353,17 @@ function setupSelectable() {
         {
             t.append = function (dom) {
                 t.control.append(dom);
+            }
+        }
+
+        //SAVE FUNCTIONS
+        {
+            t.getProtoColData = function () {
+                return t.name;
+            }
+
+            t.getColData = function () {
+                return t.value;
             }
         }
     }
