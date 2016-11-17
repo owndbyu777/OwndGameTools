@@ -185,6 +185,23 @@ function setupSelectable() {
                 t.control.append(dom);
             }
         }
+
+        //SAVE FUNCTIONS
+        {
+            t.buildSaveObj = function () {
+                var protoColData = new Array();
+                for (var i = 0; i < t.protoCols.length; i++) {
+                    protoColData.push(t.protoCols[i].getProtoColData());
+                }
+
+                var rowData = new Array();
+                for (var i = 0; i < t.rows.length; i++) {
+                    rowData.push(t.rows[i].getRowData());
+                }
+
+                return { protoCols: protoColData, rows: rowData };
+            }
+        }
     }
 }
 
@@ -248,7 +265,17 @@ function setupSelectable() {
                 $(dom).insertAfter(t.getControlCols().eq(index));
             }
         }
-
+        
+        //SAVE FUNCTIONS
+        {
+            t.getRowData = function () {
+                var colData = new Array();
+                for (var i = 0; i < t.cols.length; i++) {
+                    colData.push(t.cols[i].getColData());
+                }
+                return { cols: colData };
+            }
+        }
     }
 }
 
@@ -260,12 +287,15 @@ function setupSelectable() {
         t.isHeader = false;
         t.isProto = false;
 
+        t.name = 'selectable';
+        t.value = 'select me';
+
         $.extend(t, obj);
 
         t.getControl = function () {
             if (!t.control) {
                 t.control = D('td', 'xml');
-                t.divSelect = D('div', 'sel').appendTo(t.control).html('select me');
+                t.divSelect = D('div', 'sel').appendTo(t.control).html(t.value);
             }
 
             return t.control;
@@ -279,6 +309,17 @@ function setupSelectable() {
         {
             t.append = function (dom) {
                 t.control.append(dom);
+            }
+        }
+
+        //SAVE FUNCTIONS
+        {
+            t.getProtoColData = function () {
+                return t.name;
+            }
+
+            t.getColData = function () {
+                return t.value;
             }
         }
     }
