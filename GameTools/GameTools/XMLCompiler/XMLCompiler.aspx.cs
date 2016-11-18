@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Web.Script.Serialization;
 using System.Xml;
@@ -20,22 +21,41 @@ namespace GameTools.XMLCompiler
                 JavaScriptSerializer s = new JavaScriptSerializer();
                 Dictionary<string, object> dic = s.Deserialize<Dictionary<string, object>>(jsonDetails);
 
-                XmlDocument doc = new XmlDocument();
-                XmlElement root = (XmlElement)doc.AppendChild(doc.CreateElement("Container"));
-                XmlElement array = (XmlElement)root.AppendChild(doc.CreateElement("Array"));
+                XmlDocument xmlDoc = new XmlDocument();
+                XmlElement xmlRoot = (XmlElement)xmlDoc.AppendChild(xmlDoc.CreateElement("Container"));
+                XmlElement xmlArray = (XmlElement)xmlRoot.AppendChild(xmlDoc.CreateElement("Array"));
 
-                string[] nameArr = { "name", "cost", "description", "damage", "type" };
-                for (uint rowNum = 0; rowNum < 5; rowNum++) {
-                    XmlElement row = (XmlElement)array.AppendChild(doc.CreateElement("Row" + rowNum.ToString()));
+                //ArrayList colNames;
 
-                    for (uint colNum = 0; colNum < nameArr.Length; colNum++) {
-                        XmlElement col = (XmlElement)row.AppendChild(doc.CreateElement(nameArr[colNum]));
-                        col.InnerXml = rowNum.ToString();
+                ArrayList protoCols = (ArrayList)dic["protoCols"];
+                ArrayList protoColNames = new ArrayList();
+                foreach (string name in protoCols) {
+                    protoColNames.Add(name);
+                }
+
+                ArrayList rows = (ArrayList)dic["rows"];
+                foreach (Dictionary<string, object> row in rows) {
+                    XmlElement xmlRow = (XmlElement)xmlArray.AppendChild(xmlDoc.CreateElement(rows.IndexOf(row).ToString()));
+
+                    ArrayList cols = (ArrayList)row["cols"];
+                    foreach (string col in cols) {
+                        XmlElement xmlCol = (XmlElement)xmlRow.AppendChild(xmlDoc.CreateElement((string)protoColNames[cols.IndexOf(col)]));
+                        xmlCol.InnerXml = col;
                     }
                 }
 
+                //string[] nameArr = { "name", "cost", "description", "damage", "type" };
+                //for (uint rowNum = 0; rowNum < 5; rowNum++) {
+                //    XmlElement row = (XmlElement)array.AppendChild(doc.CreateElement("Row" + rowNum.ToString()));
+
+                //    for (uint colNum = 0; colNum < nameArr.Length; colNum++) {
+                //        XmlElement col = (XmlElement)row.AppendChild(doc.CreateElement(nameArr[colNum]));
+                //        col.InnerXml = rowNum.ToString();
+                //    }
+                //}
+
                 string path = @"c:\xmlfile.xml";
-                File.WriteAllText(path, doc.OuterXml);
+                File.WriteAllText(path, xmlDoc.OuterXml);
 
                 if (dic.ContainsKey("success")) {
                     return "{ \"success\": true }";

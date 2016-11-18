@@ -34,7 +34,7 @@ function buildXMLCompilerPage() {
         }
         btnRemoveCol.appendTo(divContainer);
 
-        var btnLoad = D('button', '', '', 'Remove Col', { 'type': 'button' });
+        var btnLoad = D('button', '', '', 'Load XML', { 'type': 'button' });
         btnLoad.onclick = function () {
             GameTools.XMLCompiler.XMLCompiler.loadXML(JSON.stringify({ success: true }), function (rsp) {
                 if (!rsp.error) {
@@ -56,7 +56,8 @@ function buildXMLCompilerPage() {
 
         var btnSave = D('button', '', '', 'Save', { 'type': 'button' });
         btnSave.onclick = function () {
-            GameTools.XMLCompiler.XMLCompiler.saveXML(JSON.stringify({success: true}), function (rsp) {
+            var obj = tblXML.buildSaveObj();
+            GameTools.XMLCompiler.XMLCompiler.saveXML(JSON.stringify(obj), function (rsp) {
                 if (!rsp.error) {
                     var objRsp = JSON.parse(rsp.value);
                     if (objRsp.success) {
@@ -279,6 +280,10 @@ function setupSelectable() {
 
                 //Add col
                 var c = new XMLCol(obj);
+
+                //Add extra properties to it
+                c.isProto = t.isProto;
+
                 if (index == -1) {
                     t.cols.push(c);
                     t.append(c.getControl());
