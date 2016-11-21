@@ -79,6 +79,12 @@ function buildXMLCompilerPage() {
         }
         btnSave.appendTo(divContainer);
 
+        var btnEditCols = D('button', '', '', 'Edit Cols', { 'type': 'button' });
+        btnEditCols.onclick = function () {
+            tblXML.editCols();
+        }
+        btnEditCols.appendTo(divContainer);
+
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
         tblXML.addRow(-1, { isProto: true });
@@ -95,20 +101,24 @@ function setupSelectable() {
             var $selectableRows = $('tr.xml', this);
 
             // Map row index
+            var arrCoords = new Array();
             var arrRowIdx = new Array();
             var arrColIdx = new Array();
-            $selectableRows.each(function (index, element) {
+            $selectableRows.each(function (rowIdx, element) {
                 //Map colIndex
                 var $selectableCols = $('td.xml', this);
                 var $selectedCols = $('.ui-selected', this);
                 if ($selectedCols.length > 0) {
-                    arrRowIdx.push(index);
+                    arrRowIdx.push(rowIdx);
                     $selectedCols.each(function (index, element) {
                         var colIdx = $selectableCols.index(this);
                         if (arrColIdx.indexOf(colIdx) == -1) arrColIdx.push(colIdx);
+
+                        arrCoords.push(new Coordinate2D(colIdx, rowIdx - 1));
                     })
                 }
             });
+            tblXML.selectedCoords = arrCoords;
             tblXML.selectedRows = arrRowIdx;
             tblXML.selectedCols = arrColIdx;
         }
@@ -124,6 +134,7 @@ function setupSelectable() {
         t.protoRow = null;
         t.protoCols = new Array();
 
+        t.selectedCoords = new Array();
         t.selectedCols = new Array();
         t.selectedRows = new Array();
 
@@ -244,6 +255,14 @@ function setupSelectable() {
                         cols[colI].name = t.protoCols[colI].name;
                         cols[colI].updateValues();
                     }
+                }
+            }
+
+            t.editCols = function () {
+                for (var i = 0; i < t.selectedCoords.length; i++) {
+                    var colIdx = t.selectedCoords[i].x;
+                    var rowIdx = t.selectedCoords[i].y;
+                    t.rows[rowIdx].cols[colIdx].startEditing();
                 }
             }
         }
@@ -384,7 +403,7 @@ function setupSelectable() {
             }
 
             t.txbName.value = t.name;
-            t.txbName.onchange = function () { t.updateValues(); }
+            t.txbName.onchange = function () { t.name = t.txbName.value; t.updateValues(); }
 
             return t.control;
         }
@@ -392,7 +411,26 @@ function setupSelectable() {
         var getNormalControl = function () {
             if (!t.control) {
                 t.control = D('td', 'xml');
-                t.divSelect = D('div', 'sel').appendTo(t.control).html(t.name + '_' + t.value);
+                t.divSelect = D('div', 'sel').appendTo(t.control);
+
+                t.spnTitle = D('span', '', '', t.name + '_' + t.value).appendTo(t.divSelect);
+
+                t.txbValue = D('input', '', '', '', { 'type': 'text' }).appendTo(t.divSelect);
+                t.txbValue.style.display = 'none';
+
+                t.control
+                    .append(t.divSelect
+                        .append(t.spnTitle)
+                        .append(t.txbValue)
+                    );
+            }
+
+            t.txbValue.value = t.value;
+            t.txbValue.onchange = function () { t.value = t.txbValue.value; t.updateValues(); }
+            t.txbValue.onkeypress = function (event) {
+                if (event.charCode == 13) {
+                    t.stopEditing();
+                }
             }
 
             return t.control;
@@ -404,11 +442,27 @@ function setupSelectable() {
 
         t.updateValues = function () {
             if (t.isProto) {
-                t.name = t.txbName.value;
-
                 updateColumnValues();
             } else {
-                t.divSelect.html(t.name + '_' + t.value)
+                t.spnTitle.html(t.name + '_' + t.value);
+            }
+        }
+
+        t.startEditing = function () {
+            if (t.isProto) {
+                throw new Error('XMLCol.startEditing -> isProto == true || NOT IMPLEMENTED');
+            } else {
+                t.txbValue.style.display = 'initial';
+                t.spnTitle.style.display = 'none';
+            }
+        }
+
+        t.stopEditing = function () {
+            if (t.isProto) {
+                throw new Error('XMLCol.stopEditing -> isProto == true || NOT IMPLEMENTED');
+            } else {
+                t.txbValue.style.display = 'none';
+                t.spnTitle.style.display = 'initial';
             }
         }
 
@@ -430,4 +484,17 @@ function setupSelectable() {
             }
         }
     }
+}
+
+function Coordinate2D(x, y) {
+    var t = this;
+
+    t.x = x;
+    t.y = y;
+
+    t.get = function () {
+        return { 'x': t.x, 'y': t.y };
+    }
+
+    return t;
 }
