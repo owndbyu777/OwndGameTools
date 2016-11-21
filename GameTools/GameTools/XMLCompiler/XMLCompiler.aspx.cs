@@ -56,12 +56,8 @@ namespace GameTools.XMLCompiler
 
                 string path = @"c:\xmlfile.xml";
                 File.WriteAllText(path, xmlDoc.OuterXml);
-
-                if (dic.ContainsKey("success")) {
-                    return "{ \"success\": true }";
-                } else {
-                    return "{ \"success\": false }";
-                }
+                
+                return "{ \"success\": true }";
             } catch (Exception e) {
                 return "{\"success\": false, \"error\": \"" + e.Message + "\"}";
             }

@@ -6,6 +6,10 @@ $(document).ready(function () {
 
 var divContainer, tblXML;
 
+function updateColumnValues() {
+    tblXML.updateCols();
+}
+
 function buildXMLCompilerPage() {
     if (!divContainer) {
         divContainer = $('#divContainer')[0];
@@ -77,8 +81,7 @@ function buildXMLCompilerPage() {
 
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
-        tblXML.addRow(-1, { isHeader: true, isProto: true });
-        tblXML.addCol(-1, { isProto: true });
+        tblXML.addRow(-1, { isProto: true });
     }
 
     setupSelectable();
@@ -118,6 +121,7 @@ function setupSelectable() {
         var t = this;
 
         t.rows = new Array();
+        t.protoRow = null;
         t.protoCols = new Array();
 
         t.selectedCols = new Array();
@@ -137,27 +141,37 @@ function setupSelectable() {
         {
             /// <summary>Adds a row to the table. An index of -1 adds the row to the end, any other index attempts to insert the row at that index.</summary>
             t.addRow = function (index, obj) {
-                //Process the index
-                if (index != -1) {
-                    if (index > t.rows.length) {
-                        index = -1;
+                if (obj.isProto) {
+                    if (t.protoCols.length > 0 || t.protoRow != null) throw new Error('Cannot add a protoRow once one exists');
+
+                    t.protoRow = new XMLRow(obj);
+
+                    t.append(t.protoRow.getControl());
+                    t.addCol(-1, {});
+                } else {
+                    //Process the index
+                    if (index != -1) {
+                        if (index > t.rows.length) {
+                            index = -1;
+                        }
+                    }
+
+                    //Add row
+                    var r = new XMLRow(obj);
+                    //Add cols to row
+                    if (index == -1) {
+                        //Push
+                        t.rows.push(r);
+                    } else {
+                        //Insert
+                        t.rows.splice(index, 0, r);
+                    }
+                    t.append(r.getControl());
+                    for (var i = 0; i < t.protoCols.length; i++) {
+                        r.addCol(-1, t.protoCols[i].getProtoObj());
                     }
                 }
-
-                //Add row
-                var r = new XMLRow(obj);
-                //Add cols to row
-                if (index == -1) {
-                    //Push
-                    t.rows.push(r);
-                } else {
-                    //Insert
-                    t.rows.splice(index, 0, r);
-                }
-                t.append(r.getControl());
-                for (var i = 0; i < t.protoCols.length; i++) {
-                    r.addCol(-1, t.protoCols[i].getProtoObj());
-                }
+                
                 setupSelectable();
             }
 
@@ -170,12 +184,16 @@ function setupSelectable() {
                 }
 
                 //Add col
+                if (obj.isProto) throw new Error('Cannot have the isProto flag set while creating a col');
+
                 var c = new XMLCol(obj);
                 c.isProto = true;
                 if (colIndex == -1) {
                     t.protoCols.push(c);
+                    t.protoRow.append(c.getControl());
                 } else {
                     t.protoCols.splice(colIndex, 0, c);
+                    t.protoRow.insert(c.getControl(), colIndex);
                 }
 
                 //Add col to rows
@@ -211,9 +229,22 @@ function setupSelectable() {
                         $(t.rows[i].cols[index].getControl()).remove();
                         t.rows[i].cols.splice(index, 1);
                     }
+                    $(t.protoCols[index].getControl()).remove();
                     t.protoCols.splice(index, 1);
                 }
                 t.selectedCols = new Array();
+            }
+
+            t.updateCols = function () {
+                //loop through all cols setting name to the respective protoCols name
+                for (var rowI = 0; rowI < t.rows.length; rowI++) {
+                    if (t.rows[rowI].isProto) continue;
+                    var cols = t.rows[rowI].cols;
+                    for (var colI = 0; colI < cols.length; colI++) {
+                        cols[colI].name = t.protoCols[colI].name;
+                        cols[colI].updateValues();
+                    }
+                }
             }
         }
 
@@ -248,7 +279,6 @@ function setupSelectable() {
     function XMLRow(obj) {
         var t = this;
 
-        t.isHeader = false;
         t.isProto = false;
         t.cols = new Array();
 
@@ -257,8 +287,6 @@ function setupSelectable() {
         t.getControl = function () {
             if (!t.control) {
                 t.control = D('tr', 'xml');
-
-                if (t.isHeader) t.control.classList.add('headerRow');
             }
 
             return t.control;
@@ -294,7 +322,7 @@ function setupSelectable() {
             }
 
             t.getFieldsForColumn = function () {
-                return { isHeader: t.isHeader };
+                return { isProto: t.isProto };
             }
         }
 
@@ -342,8 +370,28 @@ function setupSelectable() {
         if (t.isProto) t.value = 'proto col'
 
         t.getControl = function () {
+            if (t.isProto) return getProtoControl();
+            else return getNormalControl();
+        }
+
+        var getProtoControl = function () {
             if (!t.control) {
-                t.control = D('td', 'xml' + (t.isProto ? ' proto' : ''));
+                t.control = D('td', 'xml proto');
+                t.divSelect = D('div', 'sel');
+                t.txbName = D('input', '', '', '', { 'type': 'text' });
+
+                t.control.append(t.divSelect.append(t.txbName));
+            }
+
+            t.txbName.value = t.name;
+            t.txbName.onchange = function () { t.updateValues(); }
+
+            return t.control;
+        }
+
+        var getNormalControl = function () {
+            if (!t.control) {
+                t.control = D('td', 'xml');
                 t.divSelect = D('div', 'sel').appendTo(t.control).html(t.name + '_' + t.value);
             }
 
@@ -352,6 +400,16 @@ function setupSelectable() {
 
         t.getProtoObj = function () {
             return { isHeader: t.isHeader }
+        }
+
+        t.updateValues = function () {
+            if (t.isProto) {
+                t.name = t.txbName.value;
+
+                updateColumnValues();
+            } else {
+                t.divSelect.html(t.name + '_' + t.value)
+            }
         }
 
         //DOM FUNCTIONS
