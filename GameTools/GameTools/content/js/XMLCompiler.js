@@ -40,12 +40,36 @@ function buildXMLCompilerPage() {
 
         var btnLoad = D('button', '', '', 'Load XML', { 'type': 'button' });
         btnLoad.onclick = function () {
-            GameTools.XMLCompiler.XMLCompiler.loadXML(JSON.stringify({ success: true }), function (rsp) {
+            GameTools.XMLCompiler.XMLCompiler.loadXML(JSON.stringify({ filePath: document.getElementById('txbFilePath').value }), function (rsp) {
                 if (!rsp.error) {
                     var objRsp = JSON.parse(rsp.value);
                     if (objRsp.success) {
-                        //success
-                        window.alert("success");
+                        //Clear table
+                        tblXML.clearAll();
+
+                        // loop through first row, get the names of the variables and set up the protorow and protocols
+                        var a = objRsp.arr;
+                        var nameArr = new Array();
+
+                        tblXML.addRow(-1, { isProto: true, addCol: false });
+                        for (var prop in a[0]) {
+                            if (a[0].hasOwnProperty(prop)) {
+                                tblXML.addCol(-1, { name: prop });
+                                nameArr.push(prop);
+                            }
+                        }
+                        // loop through rows, creating them and creating the cols. setting the values of the cols as it goes.
+
+                        for (var iRow = 0; iRow < a.length; iRow++) {
+                            var r = tblXML.addRow(-1, {});
+
+                            for (var iCol = 0; iCol < r.cols.length; iCol++) {
+                                r.cols[iCol].name = nameArr[iCol];
+                                r.cols[iCol].value = a[iRow][nameArr[iCol]];
+                                r.cols[iCol].update();
+                            }
+                        }
+                        //window.alert(objRsp.array);
                     } else {
                         //error
                         window.alert(objRsp.error);
@@ -61,15 +85,14 @@ function buildXMLCompilerPage() {
         var btnSave = D('button', '', '', 'Save', { 'type': 'button' });
         btnSave.onclick = function () {
             var obj = tblXML.buildSaveObj();
+            obj.filePath = document.getElementById('txbFilePath').value;
             GameTools.XMLCompiler.XMLCompiler.saveXML(JSON.stringify(obj), function (rsp) {
                 if (!rsp.error) {
                     var objRsp = JSON.parse(rsp.value);
                     if (objRsp.success) {
-                        //success
-                        window.alert("success");
                     } else {
                         //error
-                        window.alert("fail");
+                        window.alert("fail: " + objRsp.error);
                     }
                 } else {
                     //error
@@ -84,6 +107,13 @@ function buildXMLCompilerPage() {
             tblXML.editCols();
         }
         btnEditCols.appendTo(divContainer);
+
+        var pBreak = D('p').appendTo(divContainer);
+
+        var txbFilePath = D('input', '', '', '', { 'type': 'text', 'id': 'txbFilePath' });
+        txbFilePath.value = 'C:\\Users\\David\\Desktop\\Games\\xmlfile.xml';
+        txbFilePath.style.width = '400px';
+        txbFilePath.appendTo(divContainer);
 
         tblXML = new XMLTable();
         tblXML.getControl().appendTo(divContainer);
@@ -152,13 +182,15 @@ function setupSelectable() {
         {
             /// <summary>Adds a row to the table. An index of -1 adds the row to the end, any other index attempts to insert the row at that index.</summary>
             t.addRow = function (index, obj) {
+                var r;
                 if (obj.isProto) {
                     if (t.protoCols.length > 0 || t.protoRow != null) throw new Error('Cannot add a protoRow once one exists');
 
                     t.protoRow = new XMLRow(obj);
+                    r = t.protoRow; 
 
                     t.append(t.protoRow.getControl());
-                    t.addCol(-1, {});
+                    if (typeof obj.addCol == 'undefined' || obj.addCol == true) t.addCol(-1, {});
                 } else {
                     //Process the index
                     if (index != -1) {
@@ -168,7 +200,7 @@ function setupSelectable() {
                     }
 
                     //Add row
-                    var r = new XMLRow(obj);
+                    r = new XMLRow(obj);
                     //Add cols to row
                     if (index == -1) {
                         //Push
@@ -179,11 +211,13 @@ function setupSelectable() {
                     }
                     t.append(r.getControl());
                     for (var i = 0; i < t.protoCols.length; i++) {
-                        r.addCol(-1, t.protoCols[i].getProtoObj());
+                        r.addCol(-1, t.protoCols[i].getProtoColData());
                     }
                 }
                 
                 setupSelectable();
+
+                return r;
             }
 
             t.addCol = function (colIndex, obj) {
@@ -265,6 +299,18 @@ function setupSelectable() {
                     t.rows[rowIdx].cols[colIdx].startEditing();
                 }
             }
+
+            t.clearAll = function () {
+                t.rows = new Array();
+                t.protoRow = null;
+                t.protoCols = new Array();
+
+                t.selectedCoords = new Array();
+                t.selectedRows = new Array();
+                t.selectedCols = new Array();
+
+                $(t.control).empty();
+            }
         }
 
         //DOM FUNCTIONS
@@ -279,7 +325,7 @@ function setupSelectable() {
             t.buildSaveObj = function () {
                 var protoColData = new Array();
                 for (var i = 0; i < t.protoCols.length; i++) {
-                    protoColData.push(t.protoCols[i].getProtoColData());
+                    protoColData.push(t.protoCols[i].getProtoColData().name); //TODO: DW 27/11/16 When converting to the protoCols having heaps of cool stuff, extend this and the backend
                 }
 
                 var rowData = new Array();
@@ -386,8 +432,6 @@ function setupSelectable() {
 
         $.extend(t, obj);
 
-        if (t.isProto) t.value = 'proto col'
-
         t.getControl = function () {
             if (t.isProto) return getProtoControl();
             else return getNormalControl();
@@ -429,6 +473,9 @@ function setupSelectable() {
             t.txbValue.onchange = function () { t.value = t.txbValue.value; t.updateValues(); }
             t.txbValue.onkeypress = function (event) {
                 if (event.charCode == 13) {
+                    event.preventDefault();
+                    var inputs = $('input:visible, select:visible, textarea:visible');
+                    if (inputs.length > 1 && inputs[inputs.index(this) + 1]) inputs[inputs.index(this) + 1].focus();
                     t.stopEditing();
                 }
             }
@@ -471,12 +518,17 @@ function setupSelectable() {
             t.append = function (dom) {
                 t.control.append(dom);
             }
+
+            t.update = function () {
+                t.spnTitle.innerHTML = t.name + '_' + t.value;
+                t.txbValue.value = t.value;
+            }
         }
 
         //SAVE FUNCTIONS
         {
             t.getProtoColData = function () {
-                return t.name;
+                return { name: t.name };
             }
 
             t.getColData = function () {
