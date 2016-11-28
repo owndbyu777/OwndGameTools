@@ -8,3 +8,13 @@ Thoughts on protocols
   - always has a textbox to edit the name of the col
   - has a edit button on each row which allows you to edit
   - the finer details of the row eg: what data is allowed to be entered into the cols
+
+
+
+  XML PARSING
+   - REDO IT TO USE LINQ to XML
+   https://msdn.microsoft.com/en-us/library/mt693062.aspx
+   has great reasons why it should be done.
+
+   Using XmlDocument is the DOM way of doing it,
+   LINQ is the redesigned updated version of DOM (sort of)
