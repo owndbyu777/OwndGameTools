@@ -26,3 +26,13 @@ td.selected {
 }
 .ui-selecting { background: #FECA40; }
 .ui-selected { background: #F39814; color: white; }
+
+/* XML STYLES */
+table.xml {
+    table-layout: fixed;
+    width: 100%;
+}
+
+td.xml {
+    width: 200px;
+}

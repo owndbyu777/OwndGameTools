@@ -18,3 +18,10 @@ Thoughts on protocols
 
    Using XmlDocument is the DOM way of doing it,
    LINQ is the redesigned updated version of DOM (sort of)
+
+   -------------------------------------------------------
+   TODO: 
+    2 ProtoCols can choose between textarea and textbox
+
+    1 ProtoCol can have a flag called ID. If the col is an ID column
+   the value of each row in each column is the index of the row.
